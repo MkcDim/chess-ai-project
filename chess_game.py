@@ -110,39 +110,61 @@ class ChessGame:
         piece = self.board[row][col]
         if not piece:
             return []
-        
+
         color, type_ = piece[0], piece[1]
+        enemy_color = "b" if color == "w" else "w"
         moves = []
 
-        if type_ == "P":
-            if row > 0 and self.board[row - 1][col] is None:
-                    moves.append((row - 1, col))
-            if row == 6 and self.board[row - 2][col] is None:
-                    moves.append((row - 2, col))
-
-        elif type_ == "R":
-            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        def slide(directions):
             for dr, dc in directions:
-                r, c = row + dr , col + dc
-                while 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE:
+                r, c = row + dr, col + dc
+                while 0 <= r < 8 and 0 <= c < 8:
                     if self.board[r][c] is None:
                         moves.append((r, c))
+                    elif self.board[r][c][0] == enemy_color:
+                        moves.append((r, c))
+                        break
                     else:
                         break
                     r += dr
                     c += dc
+
+        if type_ == "P":
+            if row > 0 and self.board[row - 1][col] is None:
+                moves.append((row - 1, col))
+                if row == 6 and self.board[row - 2][col] is None:
+                    moves.append((row - 2, col))
+
+        elif type_ == "R":
+            slide([(-1,0), (1,0), (0,-1), (0,1)])
+
+        elif type_ == "B":
+            slide([(-1,-1), (-1,1), (1,-1), (1,1)])
+
+        elif type_ == "Q":
+            slide([(-1,0), (1,0), (0,-1), (0,1),
+                   (-1,-1), (-1,1), (1,-1), (1,1)])
+
         elif type_ == "N":
-            knight_moves = [
-                (-2, -1), (-2, 1), (2, -1), (2, 1),
-                (-1, -2), (-1, 2), (1, -2), (1, 2)
-            ]
-            for dr, dc in knight_moves:
-                r = row + dr
-                c = col + dc
-                if 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE:
-                    if self.board[r][c] is None or self.board[r][c][0] != color:
+            for dr, dc in [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
+                           (1, -2), (1, 2), (2, -1), (2, 1)]:
+                r, c = row + dr, col + dc
+                if 0 <= r < 8 and 0 <= c < 8:
+                    if self.board[r][c] is None or self.board[r][c][0] == enemy_color:
                         moves.append((r, c))
+
+        elif type_ == "K":
+            for dr in [-1, 0, 1]:
+                for dc in [-1, 0, 1]:
+                    if dr == 0 and dc == 0:
+                        continue
+                    r, c = row + dr, col + dc
+                    if 0 <= r < 8 and 0 <= c < 8:
+                        if self.board[r][c] is None or self.board[r][c][0] == enemy_color:
+                            moves.append((r, c))
+
         return moves
+
 
 def main():
     root = tk.Tk()
